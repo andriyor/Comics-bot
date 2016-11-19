@@ -7,6 +7,6 @@
 
 # TODO
 
-1. add support http://www.commitstrip.com/
-2. add support http://programmers.life
+- [x] add support http://programmers.life
+- [ ] add support http://www.commitstrip.com/
 
