@@ -2,7 +2,6 @@
 import os
 from random import (randint, choice)
 from urllib import (request, error)
-import json
 from _datetime import datetime
 
 import telebot
@@ -111,12 +110,19 @@ def get_link_life():
         return choice(list(open('programmers_life.txt')))
 
 
+def commitstrip_rlink():
+    response = get('http://www.commitstrip.com/?random=1')
+    soup = BeautifulSoup(response.text, "html.parser")
+    url = soup.select_one('div.entry-content p img[src]')['src']
+    return url
+
+
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     user_murkup = telebot.types.ReplyKeyboardMarkup(True, False)
     user_murkup.row('/start', '/stop')
-    user_murkup.row('q', 'xkcd')
-    user_murkup.row('rxkcd', 'txkcd', 'programmers.life')
+    user_murkup.row('q', 'xkcd', 'rxkcd',)
+    user_murkup.row('txkcd', 'programmers.life', 'commitstrip')
     bot.send_message(message.chat.id, 'Привет', reply_markup=user_murkup)
 
 
@@ -150,8 +156,10 @@ def handle_text(message):
             bot.send_message(message.chat.id, xkcd_link(val[1:-1]))
     elif message.text == 'programmers.life':
         bot.send_message(message.chat.id, get_link_life())
+    elif message.text == 'commitstrip':
+        bot.send_message(message.chat.id, commitstrip_rlink())
     else:
         bot.send_message(message.chat.id, message.text)
 
 
-bot.polling(none_stop=True, interval=0)
+bot.polling(none_stop=True)
