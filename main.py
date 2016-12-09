@@ -11,7 +11,7 @@ from config import token
 bot = telebot.TeleBot(token)
 
 
-def xkcd_rlink(link='http://c.xkcd.com/random/comic/'):
+def xkcd_rand(link='http://c.xkcd.com/random/comic/'):
     response = get(link)
     soup = BeautifulSoup(response.text, "html.parser")  # make soup that is parse-able by bs
     link = soup.select_one('div#comic img[src]')['src']
@@ -36,20 +36,24 @@ def ru_xkcd_link(n):
     return img_link
 
 
-def get_dict_link_life():
-    links = ['http://programmers.life']
+def get_index_link_life():
+    index_links = ['http://programmers.life']
     for i in range(2, 50):
         link = 'http://programmers.life/index-{}.html'.format(i)
         response = get(link)
         if response.status_code == 404:
             break
         else:
-            links.append(link)
+            index_links.append(link)
             print('page:', i, ' - ', link)
-    print(links)
+    print(index_links)
+    return index_links
 
+
+def get_ing_link_life():
     img_links = []
-    for link in links:
+    index_link = get_index_link_life()
+    for link in index_link:
         response = get(link)
         soup = BeautifulSoup(response.text, 'html.parser')
         img_divs = soup.findAll('div', attrs={'class': 'entry'})
@@ -59,10 +63,18 @@ def get_dict_link_life():
             if 'tirinhaEN' in img_link:
                 img_links.append(img_link)
                 print('img: ', img_link)
+    return img_links
 
-    file = open('programmers_life.txt', 'w')
-    for img_link in img_links:
-        file.write("%s\n" % img_link)
+
+def write_ing_link_life():
+    with open('programmers_life.txt', 'w') as file:
+        for img_link in get_ing_link_life():
+            file.write("%s\n" % img_link)
+
+
+def life_rand():
+    with open('programmers_life.txt') as file:
+        return choice(list(file))
 
 
 def get_link_life(mes):
@@ -71,19 +83,19 @@ def get_link_life(mes):
         formats = '%Y-%m'
         data = datetime.fromtimestamp(t).strftime(formats)
         if datetime.now().strftime(formats) != data:
-            get_dict_link_life()
-            return choice(list(open('programmers_life.txt')))
+            write_ing_link_life()
+            return life_rand()
         else:
-            return choice(list(open('programmers_life.txt')))
+            return life_rand()
     except FileNotFoundError:
         messages = 'This month you are the first who launched this command' \
                    'Wait about 30 seconds until the base is formed of links'
         bot.send_message(mes.chat.id, messages)
-        get_dict_link_life()
-        return choice(list(open('programmers_life.txt')))
+        write_ing_link_life()
+        return life_rand()
 
 
-def commitstrip_rlink():
+def commitstrip_rand():
     response = get('http://www.commitstrip.com/?random=1')
     soup = BeautifulSoup(response.text, "html.parser")
     link = soup.select_one('div.entry-content p img[src]')['src']
@@ -106,18 +118,18 @@ def handle_text(message):
         soup = BeautifulSoup(response.text, 'html.parser')
         bot.send_message(message.chat.id, soup)
     elif message.text == 'xkcd':
-        bot.send_message(message.chat.id, xkcd_rlink())
+        bot.send_message(message.chat.id, xkcd_rand())
     elif message.text == 'rxkcd':
         val = ru_xkcd_rand()
         bot.send_message(message.chat.id, ru_xkcd_link(val))
     elif message.text == 'txkcd':
         val = ru_xkcd_rand()
-        bot.send_message(message.chat.id, xkcd_rlink(link='http://xkcd.com/{}'.format(val)))
+        bot.send_message(message.chat.id, xkcd_rand(link='http://xkcd.com/{}'.format(val)))
         bot.send_message(message.chat.id, ru_xkcd_link(val))
     elif message.text == 'programmers.life':
         bot.send_message(message.chat.id, get_link_life(message))
     elif message.text == 'commitstrip':
-        bot.send_message(message.chat.id, commitstrip_rlink())
+        bot.send_message(message.chat.id, commitstrip_rand())
     else:
         bot.send_message(message.chat.id, message.text)
 

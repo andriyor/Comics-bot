@@ -6,7 +6,3 @@
 4. txkcd - random comics from xkcd with translate
 5. programmers.life random comics from http://programmers.life
 6. programmers.life random comics from http://www.commitstrip.com/
-
-# TODO
-
-- [ ] refactor code
