@@ -6,7 +6,7 @@ from _datetime import datetime
 import telebot
 from bs4 import BeautifulSoup
 from requests import get
-from config import token
+from token import token
 
 bot = telebot.TeleBot(token)
 
@@ -111,27 +111,27 @@ def handle_start(message):
     bot.send_message(message.chat.id, 'Привет', reply_markup=user_murkup)
 
 
-# @bot.message_handler(content_types=['text'])
-# def handle_text(message):
-#     if message.text == 'q':
-#         response = get('https://tproger.ru/wp-content/plugins/citation-widget/getQuotes.php')
-#         soup = BeautifulSoup(response.text, 'html.parser')
-#         bot.send_message(message.chat.id, soup)
-#     elif message.text == 'xkcd':
-#         bot.send_message(message.chat.id, xkcd_rand())
-#     elif message.text == 'rxkcd':
-#         val = ru_xkcd_rand()
-#         bot.send_message(message.chat.id, ru_xkcd_link(val))
-#     elif message.text == 'txkcd':
-#         val = ru_xkcd_rand()
-#         bot.send_message(message.chat.id, xkcd_rand(link='http://xkcd.com/{}'.format(val)))
-#         bot.send_message(message.chat.id, ru_xkcd_link(val))
-#     elif message.text == 'programmers.life':
-#         bot.send_message(message.chat.id, get_link_life(message))
-#     elif message.text == 'commitstrip':
-#         bot.send_message(message.chat.id, commitstrip_rand())
-#     else:
-#         bot.send_message(message.chat.id, message.text)
-#
-# bot.polling(none_stop=True)
+@bot.message_handler(content_types=['text'])
+def handle_text(message):
+    if message.text == 'q':
+        response = get('https://tproger.ru/wp-content/plugins/citation-widget/getQuotes.php')
+        soup = BeautifulSoup(response.text, 'html.parser')
+        bot.send_message(message.chat.id, soup)
+    elif message.text == 'xkcd':
+        bot.send_message(message.chat.id, xkcd_rand())
+    elif message.text == 'rxkcd':
+        val = ru_xkcd_rand()
+        bot.send_message(message.chat.id, ru_xkcd_link(val))
+    elif message.text == 'txkcd':
+        val = ru_xkcd_rand()
+        bot.send_message(message.chat.id, xkcd_rand(link='http://xkcd.com/{}'.format(val)))
+        bot.send_message(message.chat.id, ru_xkcd_link(val))
+    elif message.text == 'programmers.life':
+        bot.send_message(message.chat.id, get_link_life(message))
+    elif message.text == 'commitstrip':
+        bot.send_message(message.chat.id, commitstrip_rand())
+    else:
+        bot.send_message(message.chat.id, message.text)
+
+bot.polling(none_stop=True)
 
