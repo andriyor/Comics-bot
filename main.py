@@ -13,26 +13,26 @@ bot = telebot.TeleBot(token)
 
 def xkcd_rand(link='http://c.xkcd.com/random/comic/'):
     response = get(link)
-    soup = BeautifulSoup(response.text, "html.parser")  # make soup that is parse-able by bs
-    link = soup.select_one('div#comic img[src]')['src']
-    return link
+    soup = BeautifulSoup(response.text, "html.parser")
+    img_link = soup.select_one('div#comic img[src]')['src']
+    return img_link
 
 
 def ru_xkcd_rand():
     response = get('http://xkcd.ru/num/')
-    num_soup = BeautifulSoup(response.text, "html.parser")  # make soup that is parse-able by bs
+    num_soup = BeautifulSoup(response.text, "html.parser")
     list_link = []
-    for link in num_soup.find_all('a'):
-        list_link.append(link.get('href'))
-    link = choice(list_link[7:])
-    return link
+    real_li = num_soup.find_all("li", class_="real ")
+    for li in real_li:
+        list_link.append(li.find('a').get('href'))
+    return list_link
 
 
 def ru_xkcd_link(n):
     page = 'http://xkcd.ru' + n
     response = get(page)
-    s_img = BeautifulSoup(response.text, 'html.parser')
-    img_link = s_img.select_one('div.main img[src]')['src']
+    soup = BeautifulSoup(response.text, 'html.parser')
+    img_link = soup.select_one('div.main img[src]')['src']
     return img_link
 
 
@@ -111,26 +111,27 @@ def handle_start(message):
     bot.send_message(message.chat.id, 'Привет', reply_markup=user_murkup)
 
 
-@bot.message_handler(content_types=['text'])
-def handle_text(message):
-    if message.text == 'q':
-        response = get('https://tproger.ru/wp-content/plugins/citation-widget/getQuotes.php')
-        soup = BeautifulSoup(response.text, 'html.parser')
-        bot.send_message(message.chat.id, soup)
-    elif message.text == 'xkcd':
-        bot.send_message(message.chat.id, xkcd_rand())
-    elif message.text == 'rxkcd':
-        val = ru_xkcd_rand()
-        bot.send_message(message.chat.id, ru_xkcd_link(val))
-    elif message.text == 'txkcd':
-        val = ru_xkcd_rand()
-        bot.send_message(message.chat.id, xkcd_rand(link='http://xkcd.com/{}'.format(val)))
-        bot.send_message(message.chat.id, ru_xkcd_link(val))
-    elif message.text == 'programmers.life':
-        bot.send_message(message.chat.id, get_link_life(message))
-    elif message.text == 'commitstrip':
-        bot.send_message(message.chat.id, commitstrip_rand())
-    else:
-        bot.send_message(message.chat.id, message.text)
+# @bot.message_handler(content_types=['text'])
+# def handle_text(message):
+#     if message.text == 'q':
+#         response = get('https://tproger.ru/wp-content/plugins/citation-widget/getQuotes.php')
+#         soup = BeautifulSoup(response.text, 'html.parser')
+#         bot.send_message(message.chat.id, soup)
+#     elif message.text == 'xkcd':
+#         bot.send_message(message.chat.id, xkcd_rand())
+#     elif message.text == 'rxkcd':
+#         val = ru_xkcd_rand()
+#         bot.send_message(message.chat.id, ru_xkcd_link(val))
+#     elif message.text == 'txkcd':
+#         val = ru_xkcd_rand()
+#         bot.send_message(message.chat.id, xkcd_rand(link='http://xkcd.com/{}'.format(val)))
+#         bot.send_message(message.chat.id, ru_xkcd_link(val))
+#     elif message.text == 'programmers.life':
+#         bot.send_message(message.chat.id, get_link_life(message))
+#     elif message.text == 'commitstrip':
+#         bot.send_message(message.chat.id, commitstrip_rand())
+#     else:
+#         bot.send_message(message.chat.id, message.text)
+#
+# bot.polling(none_stop=True)
 
-bot.polling(none_stop=True)
