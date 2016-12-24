@@ -6,7 +6,7 @@ from _datetime import datetime
 import telebot
 from bs4 import BeautifulSoup
 from requests import get
-from token import token
+from config import token
 
 bot = telebot.TeleBot(token)
 
@@ -25,7 +25,8 @@ def ru_xkcd_rand():
     real_li = num_soup.find_all("li", class_="real ")
     for li in real_li:
         list_link.append(li.find('a').get('href'))
-    return list_link
+    link = choice(list_link)
+    return link
 
 
 def ru_xkcd_link(n):
@@ -133,5 +134,6 @@ def handle_text(message):
     else:
         bot.send_message(message.chat.id, message.text)
 
-bot.polling(none_stop=True)
+if __name__ == '__main__':
+    bot.polling(none_stop=True)
 
