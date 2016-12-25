@@ -103,10 +103,20 @@ def commitstrip_rand():
     return link
 
 
+def explosm_rand():
+    response = get('http://explosm.net/comics/random')
+    soup = BeautifulSoup(response.text, 'html.parser')
+    print(soup)
+    link = soup.select_one('div.small-12.medium-12.large-12.columns img[src]')['src']
+    return link
+
+print(explosm_rand())
+
+
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     user_murkup = telebot.types.ReplyKeyboardMarkup(True, False)
-    user_murkup.row('/start', '/stop')
+    user_murkup.row('/start', 'explosm')
     user_murkup.row('q', 'xkcd', 'rxkcd',)
     user_murkup.row('txkcd', 'programmers.life', 'commitstrip')
     bot.send_message(message.chat.id, 'Привет', reply_markup=user_murkup)
@@ -120,6 +130,8 @@ def handle_text(message):
         bot.send_message(message.chat.id, soup)
     elif message.text == 'xkcd':
         bot.send_message(message.chat.id, xkcd_rand())
+    elif message.text == 'explosm':
+        bot.send_message(message.chat.id, explosm_rand())
     elif message.text == 'rxkcd':
         val = ru_xkcd_rand()
         bot.send_message(message.chat.id, ru_xkcd_link(val))
@@ -136,4 +148,3 @@ def handle_text(message):
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)
-
