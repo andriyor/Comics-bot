@@ -1,37 +1,42 @@
-#!/usr/bin/env python3
 import os
 from random import choice
 from _datetime import datetime
 
 import telebot
 from bs4 import BeautifulSoup
-from requests import get
-from config import token
+import requests
 
+token = os.environ.get('TELEGRAM_API_KEY')
 bot = telebot.TeleBot(token)
 
 
 def xkcd_rand(link='http://c.xkcd.com/random/comic/'):
-    response = get(link)
-    soup = BeautifulSoup(response.text, "html.parser")
-    img_link = soup.select_one('div#comic img[src]')['src']
-    return img_link
+    try:
+        response = requests.get(link, timeout=1)
+        soup = BeautifulSoup(response.text, "html.parser")
+        img_link = soup.select_one('div#comic img[src]')['src']
+        return img_link
+    except requests.exceptions.ConnectTimeout:
+        return 'Oops. Connection timeout occurred!'
 
 
 def ru_xkcd_rand():
-    response = get('http://xkcd.ru/num/')
-    num_soup = BeautifulSoup(response.text, "html.parser")
-    list_link = []
-    real_li = num_soup.find_all("li", class_="real ")
-    for li in real_li:
-        list_link.append(li.find('a').get('href'))
-    link = choice(list_link)
-    return link
+    try:
+        response = requests.get('http://xkcd.ru/num/', timeout=1)
+        num_soup = BeautifulSoup(response.text, "html.parser")
+        list_link = []
+        real_li = num_soup.find_all("li", class_="real ")
+        for li in real_li:
+            list_link.append(li.find('a').get('href'))
+        link = choice(list_link)
+        return link
+    except requests.exceptions.ConnectTimeout:
+        return None
 
 
 def ru_xkcd_link(n):
     page = 'http://xkcd.ru' + n
-    response = get(page)
+    response = requests.get(page)
     soup = BeautifulSoup(response.text, 'html.parser')
     img_link = soup.select_one('div.main img[src]')['src']
     return img_link
@@ -40,14 +45,13 @@ def ru_xkcd_link(n):
 def get_index_link_life():
     index_links = ['http://programmers.life']
     for i in range(2, 50):
-        link = 'http://programmers.life/index-{}.html'.format(i)
-        response = get(link)
+        link = f'http://programmers.life/index-{i}.html'
+        print(link)
+        response = requests.get(link)
         if response.status_code == 404:
             break
         else:
             index_links.append(link)
-            print('page:', i, ' - ', link)
-    print(index_links)
     return index_links
 
 
@@ -55,15 +59,13 @@ def get_ing_link_life():
     img_links = []
     index_link = get_index_link_life()
     for link in index_link:
-        response = get(link)
+        response = requests.get(link)
         soup = BeautifulSoup(response.text, 'html.parser')
         img_divs = soup.findAll('div', attrs={'class': 'entry'})
-        print(link)
         for div in img_divs:
             img_link = div.find('img')['src']
             if 'tirinhaEN' in img_link:
                 img_links.append(img_link)
-                print('img: ', img_link)
     return img_links
 
 
@@ -97,54 +99,67 @@ def get_link_life(mes):
 
 
 def commitstrip_rand():
-    response = get('http://www.commitstrip.com/?random=1')
-    soup = BeautifulSoup(response.text, "html.parser")
-    link = soup.select_one('div.entry-content p img[src]')['src']
-    return link
+    try:
+        response = requests.get('http://www.commitstrip.com/?random=1', timeout=1)
+        soup = BeautifulSoup(response.text, "html.parser")
+        link = soup.select_one('div.entry-content p img[src]')['src']
+        return link
+    except requests.exceptions.ConnectTimeout:
+        return 'Oops. Connection timeout occurred!'
 
 
 def explosm_rand():
-    response = get('http://explosm.net/comics/random')
-    soup = BeautifulSoup(response.text, 'html.parser')
-    print(soup)
-    link = soup.select_one('div.small-12.medium-12.large-12.columns img[src]')['src']
-    return link
-
-print(explosm_rand())
+    try:
+        response = requests.get('http://explosm.net/comics/random', timeout=1)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        link = soup.select_one('div.small-12.medium-12.large-12.columns img[src]')['src']
+        return link
+    except requests.exceptions.ConnectTimeout:
+        return 'Oops. Connection timeout occurred!'
 
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     user_murkup = telebot.types.ReplyKeyboardMarkup(True, False)
     user_murkup.row('/start', 'explosm')
-    user_murkup.row('q', 'xkcd', 'rxkcd',)
-    user_murkup.row('txkcd', 'programmers.life', 'commitstrip')
-    bot.send_message(message.chat.id, 'Привет', reply_markup=user_murkup)
+    user_murkup.row('txkcd', 'xkcd', 'rxkcd',)
+    user_murkup.row('tproger quote', 'commitstrip')
+    bot.send_message(message.chat.id, 'Welcome to Comics Bot', reply_markup=user_murkup)
 
 
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
-    if message.text == 'q':
-        response = get('https://tproger.ru/wp-content/plugins/citation-widget/getQuotes.php')
-        soup = BeautifulSoup(response.text, 'html.parser')
-        bot.send_message(message.chat.id, soup)
+    if message.text == 'tproger quote':
+        try:
+            response = requests.get('https://tproger.ru/wp-content/plugins/citation-widget/getQuotes.php',
+                                    timeout=1)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            bot.send_message(message.chat.id, soup)
+        except requests.exceptions.ConnectTimeout:
+            bot.send_message(message.chat.id, 'Oops. Connection timeout occurred!')
     elif message.text == 'xkcd':
         bot.send_message(message.chat.id, xkcd_rand())
     elif message.text == 'explosm':
         bot.send_message(message.chat.id, explosm_rand())
     elif message.text == 'rxkcd':
         val = ru_xkcd_rand()
-        bot.send_message(message.chat.id, ru_xkcd_link(val))
+        if val:
+            bot.send_message(message.chat.id, ru_xkcd_link(val))
+        else:
+            bot.send_message(message.chat.id, 'Oops. Connection timeout occurred!')
     elif message.text == 'txkcd':
         val = ru_xkcd_rand()
-        bot.send_message(message.chat.id, xkcd_rand(link='http://xkcd.com/{}'.format(val)))
-        bot.send_message(message.chat.id, ru_xkcd_link(val))
-    elif message.text == 'programmers.life':
-        bot.send_message(message.chat.id, get_link_life(message))
+        if val:
+            bot.send_message(message.chat.id, xkcd_rand(link=f'http://xkcd.com/{val}'))
+            bot.send_message(message.chat.id, ru_xkcd_link(val))
+        else:
+            bot.send_message(message.chat.id, 'Oops. Connection timeout occurred!')
+    # elif message.text == 'programmers.life':
+    #     bot.send_message(message.chat.id, get_link_life(message))
     elif message.text == 'commitstrip':
         bot.send_message(message.chat.id, commitstrip_rand())
     else:
-        bot.send_message(message.chat.id, message.text)
+        bot.send_message(message.chat.id, 'Send me commands')
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)

@@ -1,4 +1,9 @@
-beautifulsoup4==4.5.1
-requests==2.11.1
-pyTelegramBotAPI==2.1.7
-pytest
+appdirs==1.4.3
+beautifulsoup4==4.5.3
+packaging==16.8
+py==1.4.33
+pyparsing==2.2.0
+pyTelegramBotAPI==2.3.1
+pytest==3.0.7
+requests==2.13.0
+six==1.10.0
