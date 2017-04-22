@@ -5,6 +5,9 @@ from _datetime import datetime
 import telebot
 from bs4 import BeautifulSoup
 import requests
+from botanio import botan
+
+botan_token = os.environ.get('BOTAN_API_KEY')
 
 token = os.environ.get('TELEGRAM_API_KEY')
 bot = telebot.TeleBot(token)
@@ -135,16 +138,20 @@ def handle_text(message):
                                     timeout=1)
             soup = BeautifulSoup(response.text, 'html.parser')
             bot.send_message(message.chat.id, soup)
+            botan.track(botan_token, uid=message.from_user.id, message='tproger quote', name='tproger quote')
         except requests.exceptions.ConnectTimeout:
             bot.send_message(message.chat.id, 'Oops. Connection timeout occurred!')
     elif message.text == 'xkcd':
         bot.send_message(message.chat.id, xkcd_rand())
+        botan.track(botan_token, uid=message.from_user.id, message='xkcd', name='xkcd')
     elif message.text == 'explosm':
         bot.send_message(message.chat.id, explosm_rand())
+        botan.track(botan_token, uid=message.from_user.id, message='explosm', name='explosm')
     elif message.text == 'rxkcd':
         val = ru_xkcd_rand()
         if val:
             bot.send_message(message.chat.id, ru_xkcd_link(val))
+            botan.track(botan_token, uid=message.from_user.id, message='rxkcd', name='rxkcd')
         else:
             bot.send_message(message.chat.id, 'Oops. Connection timeout occurred!')
     elif message.text == 'txkcd':
@@ -152,12 +159,14 @@ def handle_text(message):
         if val:
             bot.send_message(message.chat.id, xkcd_rand(link=f'http://xkcd.com/{val}'))
             bot.send_message(message.chat.id, ru_xkcd_link(val))
+            botan.track(botan_token, uid=message.from_user.id, message='txkcd', name='txkcd')
         else:
             bot.send_message(message.chat.id, 'Oops. Connection timeout occurred!')
     # elif message.text == 'programmers.life':
     #     bot.send_message(message.chat.id, get_link_life(message))
     elif message.text == 'commitstrip':
         bot.send_message(message.chat.id, commitstrip_rand())
+        botan.track(botan_token, uid=message.from_user.id, message='commitstrip', name='commitstrip')
     else:
         bot.send_message(message.chat.id, 'Send me commands')
 
